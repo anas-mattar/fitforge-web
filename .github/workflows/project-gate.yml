@@ -1,0 +1,46 @@
+# project-gate.yml — filled from the kit template (.github/workflows/project-gate.yml.template
+# in the governance repository, anas-mattar/FitForge-spec).
+#
+# Runs FitForge's FRONTEND gate, exactly as docs/sdlc/gate-command.md defines it. A push-event
+# run of this workflow is the evidence a CI-held certification cites: the run page shows the
+# command, the conclusion, and the commit sha (constitution X). A pull_request-event run
+# executes a merge preview, not the phase commit, and certifies nothing.
+#
+# `npm ci` installs from the committed lockfile and is NOT part of the gate chain — the gate
+# is what the chain below says it is. `typecheck` is listed separately from `build` on
+# purpose: next build can be configured to ignore type errors, and a gate a config flag can
+# silently weaken is not a gate.
+
+name: project-gate
+
+on:
+  push:
+    branches:
+      - main
+      - '[0-9][0-9][0-9]-*'
+      - 'fix/**'
+      - 'chore/**'
+      - 'docs/**'
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  project-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install from the lockfile
+        run: npm ci
+      - name: Run the project gate
+        working-directory: '.'
+        shell: bash
+        run: |
+          npm run lint && npm run typecheck && npm run build && npm test
