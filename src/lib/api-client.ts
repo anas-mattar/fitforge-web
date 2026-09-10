@@ -16,7 +16,7 @@ import { probeApiHealth, type HealthPayload } from "./health";
  * a module-level read runs during the build, where the variable is often absent, and
  * would bake an empty string into the server bundle.
  */
-function getApiBaseUrl(): string {
+export function apiBaseUrl(): string {
   const baseUrl = process.env.FITFORGE_API_BASE_URL;
 
   if (!baseUrl) {
@@ -33,5 +33,5 @@ function getApiBaseUrl(): string {
 
 /** Ask the C# API whether it is ready, per contracts/health.md §2. */
 export function getApiHealth(): Promise<HealthPayload> {
-  return probeApiHealth({ baseUrl: getApiBaseUrl() });
+  return probeApiHealth({ baseUrl: apiBaseUrl() });
 }
