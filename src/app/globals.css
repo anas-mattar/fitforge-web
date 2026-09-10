@@ -1,26 +1,113 @@
 @import "tailwindcss";
 
+/* Dark is a class, never a media query alone: the viewer's explicit choice must be able
+   to beat their OS setting, and the script in layout.tsx stamps the class before paint. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design tokens — transcribed verbatim from the visual reference
+   (specs/001-solution-scaffold/screenshots/fitforge-prototype.html).
+
+   The reference is a Tailwind v3 Play-CDN page and this is Tailwind v4, so the
+   declaration site moves from a `theme.extend.colors` object to `@theme`. Plan §4.6
+   records that translation. The HSL triples and --radius carry over UNCHANGED — if a
+   value here ever differs from the reference, one of the two is wrong, and it is not
+   this file's job to decide which. Raise it; don't reconcile it silently.
+   ───────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 0 0% 100%;
+  --foreground: 240 10% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 4%;
+  --primary: 22 92% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 96%;
+  --secondary-foreground: 240 6% 10%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 46%;
+  --accent: 240 5% 96%;
+  --accent-foreground: 240 6% 10%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 71% 40%;
+  --success-foreground: 0 0% 100%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 22 92% 50%;
+  --radius: 0.65rem;
 }
 
+.dark {
+  --background: 240 10% 6%;
+  --foreground: 0 0% 98%;
+  --card: 240 8% 9%;
+  --card-foreground: 0 0% 98%;
+  --primary: 22 92% 54%;
+  --primary-foreground: 240 10% 6%;
+  --secondary: 240 5% 15%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 5% 15%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 5% 17%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --success: 142 64% 45%;
+  --success-foreground: 240 10% 6%;
+  --border: 240 5% 18%;
+  --input: 240 5% 18%;
+  --ring: 22 92% 54%;
+}
+
+/* The only bridge between the tokens above and Tailwind's utilities. A component that
+   wants a colour asks for `bg-card` or `text-muted-foreground`; it never writes a value
+   (FR-006). `inline` resolves at use-site, so .dark overrides take effect. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  *,
+  ::after,
+  ::before {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* VI-009. A utility rather than a per-component style, so everywhere digits stack —
+     set counts, loads, volumes, dates — they line up without anyone deciding to. */
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
 }
