@@ -50,7 +50,10 @@ export function NavLink({
 
   // VI-004/VI-005: 0.75rem x 0.5rem padding, radius md, 0.875rem text, 0.625rem gap.
   // Active is --secondary on --secondary-foreground at medium weight; inactive is
-  // --muted-foreground, and --accent appears on hover only.
+  // --muted-foreground, and --accent appears on hover only — as a background, and
+  // nothing else. Phase 3 also set hover:text-accent-foreground, which the reference
+  // does not have; the recorded compliance loop marked VI-004 PASS anyway, because it
+  // compared the resting colours and never hovered anything.
   return (
     <Link
       href={href}
@@ -59,7 +62,7 @@ export function NavLink({
         "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm",
         isActive
           ? "bg-secondary font-medium text-secondary-foreground"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          : "text-muted-foreground hover:bg-accent",
       )}
     >
       {icon}

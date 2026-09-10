@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
         {/* VI-001: 220px sidebar column, fluid content column, 1rem gap. Below 1024px
             the grid collapses to one column and BottomNav takes the sidebar's place. */}
-        <div className="mx-auto grid w-full max-w-6xl flex-1 gap-4 px-4 py-4 lg:grid-cols-[220px_1fr]">
+        <div className="mx-auto grid w-full max-w-[1400px] flex-1 gap-4 px-4 py-6 lg:grid-cols-[220px_1fr]">
           <Sidebar />
           <main className="min-w-0">{children}</main>
         </div>

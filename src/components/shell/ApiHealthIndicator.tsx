@@ -21,6 +21,21 @@ const PRESENTATION: Record<ApiHealth | "checking", { label: string; dot: string;
   unreachable: { label: "API unreachable", dot: "bg-muted-foreground", text: "text-muted-foreground" },
 };
 
+/**
+ * Narrows an unknown payload to a state this component can render.
+ *
+ * Phase 4 cast the parsed JSON to `{ api?: ApiHealth }` and used it. A cast is a claim
+ * about data we did not produce: any value outside the three words made
+ * `PRESENTATION[state]` `undefined`, and destructuring that throws *during render* —
+ * inside the root layout, so the global error boundary replaces the entire application.
+ * A health indicator that can take the page down is worse than no health indicator.
+ * `?? "unreachable"` covered a missing field and made the value look validated; it did
+ * nothing about a wrong one.
+ */
+export function toApiHealth(value: unknown): ApiHealth {
+  return value === "ready" || value === "degraded" || value === "unreachable" ? value : "unreachable";
+}
+
 export function ApiHealthIndicator() {
   const [state, setState] = useState<ApiHealth | "checking">("checking");
 
@@ -29,7 +44,8 @@ export function ApiHealthIndicator() {
 
     fetch("/api/health", { signal: controller.signal, cache: "no-store" })
       .then((response) => response.json())
-      .then((payload: { api?: ApiHealth }) => setState(payload.api ?? "unreachable"))
+      .then((payload: unknown) =>
+        setState(toApiHealth((payload as { api?: unknown } | null)?.api)))
       // If our own route cannot be reached, the honest answer is still "unreachable" —
       // and it must never take the page down with it.
       .catch(() => {

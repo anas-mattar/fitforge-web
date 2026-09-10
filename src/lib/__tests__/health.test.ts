@@ -107,11 +107,31 @@ describe("probeApiHealth", () => {
   });
 
   it("applies the contract's timeout", async () => {
+    // Assert the timeout that was actually applied, not that *a* signal exists.
+    // The earlier version of this test checked `instanceof AbortSignal` and then, quite
+    // separately, that the constant equalled 10_000 — so AbortSignal.timeout(1) would
+    // have passed it, and the one thing it was named for went unchecked.
+    const timeoutSpy = vi.spyOn(AbortSignal, "timeout");
     const fetchImpl = respondWith(200);
+
     await probeApiHealth({ baseUrl: BASE, fetchImpl, now: FIXED_NOW });
 
-    const init = fetchImpl.mock.calls[0][1];
-    expect(init?.signal).toBeInstanceOf(AbortSignal);
+    expect(timeoutSpy).toHaveBeenCalledWith(HEALTH_TIMEOUT_MS);
     expect(HEALTH_TIMEOUT_MS).toBe(10_000);
+
+    const init = fetchImpl.mock.calls[0][1];
+    expect(init?.signal).toBe(timeoutSpy.mock.results[0].value);
+
+    timeoutSpy.mockRestore();
+  });
+
+  it("honours a caller-supplied timeout over the default", async () => {
+    const timeoutSpy = vi.spyOn(AbortSignal, "timeout");
+
+    await probeApiHealth({ baseUrl: BASE, fetchImpl: respondWith(200), timeoutMs: 250, now: FIXED_NOW });
+
+    expect(timeoutSpy).toHaveBeenCalledWith(250);
+
+    timeoutSpy.mockRestore();
   });
 });

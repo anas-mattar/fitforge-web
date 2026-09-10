@@ -17,10 +17,19 @@ export async function GET() {
 
   try {
     payload = await getApiHealth();
-  } catch {
+  } catch (error) {
     // getApiHealth throws only when the address is not configured at all. From the
     // browser's side that is indistinguishable from an API it cannot reach, and the
-    // contract has no fourth word for "we never tried".
+    // contract has no fourth word for "we never tried" — so the answer stays
+    // "unreachable".
+    //
+    // But the operator is not the browser. Phase 4 swallowed this error, so a missing
+    // FITFORGE_API_BASE_URL produced "unreachable" with no server-side signal at all,
+    // and the only clue anyone had pointed at the API process — which was fine. That is
+    // the wrong-process misdirection contract §2 exists to prevent, arriving by another
+    // door. The client answer is unchanged; the server now says what actually happened.
+    console.error("[fitforge] readiness probe could not run:", error);
+
     payload = { api: "unreachable", checkedAt: new Date().toISOString() };
   }
 
