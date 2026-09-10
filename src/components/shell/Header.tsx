@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ApiHealthIndicator } from "./ApiHealthIndicator";
 import { ThemeToggle } from "./ThemeToggle";
 import { PROFILE_NAV } from "./navigation";
 
@@ -15,7 +16,8 @@ export function Header() {
           FitForge
         </Link>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
+          <ApiHealthIndicator />
           <ThemeToggle />
           <Link
             href={PROFILE_NAV.href}
