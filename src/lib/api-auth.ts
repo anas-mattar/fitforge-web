@@ -1,7 +1,7 @@
 import "server-only";
 
 import { apiBaseUrl } from "./api-client";
-import { postRegister, postSignIn, postSignOut } from "./auth-transport";
+import { getMe as transportGetMe, postRegister, postSignIn, postSignOut } from "./auth-transport";
 
 /**
  * Supplies the API's address to `auth-transport.ts`, and is the module that carries
@@ -13,7 +13,7 @@ import { postRegister, postSignIn, postSignOut } from "./auth-transport";
  * enforcement invariant 7 needs.
  */
 
-export type { ApiResult, Credentialed } from "./auth-transport";
+export type { ApiResult, Credentialed, Me } from "./auth-transport";
 
 export const register = (email: string, password: string, displayName: string) =>
   postRegister(apiBaseUrl(), email, password, displayName);
@@ -22,3 +22,5 @@ export const signIn = (email: string, password: string) =>
   postSignIn(apiBaseUrl(), email, password);
 
 export const signOut = (token: string) => postSignOut(apiBaseUrl(), token);
+
+export const getMe = (token: string) => transportGetMe(apiBaseUrl(), token);

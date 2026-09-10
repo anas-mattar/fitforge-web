@@ -98,3 +98,57 @@ export function postSignIn(baseUrl: string, email: string, password: string) {
 export function postSignOut(baseUrl: string, token: string) {
   return post<void>(baseUrl, "/api/v1/auth/sign-out", {}, token);
 }
+
+/** What `GET /api/v1/me` returns (contracts/member.md §1). */
+export type Me = {
+  readonly member: {
+    readonly publicId: string;
+    readonly email: string;
+    readonly displayName: string;
+    readonly memberSince: string;
+    readonly units: string;
+    readonly timeZone: string;
+    readonly goal: string;
+    readonly experience: string;
+  };
+  readonly profile: {
+    readonly birthYear: number | null;
+    readonly sex: string | null;
+    readonly heightCm: number | null;
+  };
+};
+
+/**
+ * contracts/member.md §1.
+ *
+ * A GET rather than the POST helper above, and worth its own function rather than a
+ * `method` parameter: this is the call the authenticated shell makes on every
+ * navigation, and it is the one place a mistake would render one member's name above
+ * another member's page.
+ */
+export async function getMe(baseUrl: string, token: string): Promise<ApiResult<Me>> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${baseUrl}/api/v1/me`, {
+      headers: { authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+      cache: "no-store",
+    });
+  } catch {
+    return { ok: false, status: null, title: null };
+  }
+
+  if (response.status >= 500) {
+    return { ok: false, status: null, title: null };
+  }
+
+  if (!response.ok) {
+    // A 401 here means the session is not usable — expired, revoked, or belonging to a
+    // member who deleted their account. The caller redirects; it does not get to know
+    // which, because contracts/auth.md §5 does not tell it.
+    return { ok: false, status: response.status, title: "Not signed in." };
+  }
+
+  return { ok: true, value: (await response.json()) as Me };
+}
