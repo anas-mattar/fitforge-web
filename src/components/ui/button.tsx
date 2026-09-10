@@ -22,9 +22,16 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: "bg-primary text-primary-foreground hover:opacity-90",
+        // text-foreground is NOT redundant with inheritance. A <button> carries the
+        // user agent's `color: buttontext`, which does not inherit, so a variant that
+        // sets no colour renders near-black in BOTH themes — dark text on a dark card.
+        // Found in feature 002 phase 9's Visual Compliance Loop on the profile screen,
+        // measured: this button stayed rgb(9,9,11) while every sibling moved to
+        // rgb(250,250,250). It is a feature 001 defect and it is fixed here because
+        // the profile screen cannot meet its dark reference while it stands.
         secondary:
-          "border border-border bg-transparent hover:bg-accent hover:text-accent-foreground",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "border border-border bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground",
+        ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
         destructive: "bg-destructive text-destructive-foreground hover:opacity-90",
       },
       size: {

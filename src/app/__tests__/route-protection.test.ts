@@ -51,7 +51,18 @@ describe("the sign-in route renders no app shell", () => {
   });
 });
 
-describe("an unauthenticated visitor never reaches an authenticated route", () => {
+/**
+ * A longer budget than vitest's 5s default, and it is a budget change rather than a
+ * behaviour change.
+ *
+ * Each case dynamically imports the `(app)` layout, whose module graph grew when phase
+ * 9 added the profile screen. The first cold transform on this filesystem — Next warns
+ * it is slow — took 5.8s, so the suite began failing on TIME while every assertion
+ * still held. Raising a timeout to hide a real hang would be the wrong move; raising it
+ * because the work legitimately takes longer than a default is the right one, and this
+ * comment is what tells the two apart later.
+ */
+describe("an unauthenticated visitor never reaches an authenticated route", { timeout: 30_000 }, () => {
   afterEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();
