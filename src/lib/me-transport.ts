@@ -6,6 +6,8 @@
  * hand. The caller supplies the address.
  */
 
+import { FORWARDED_FOR } from "./source-address";
+
 const TIMEOUT_MS = 10_000;
 
 export type Forwarded =
@@ -21,6 +23,11 @@ export type Forwarded =
  * a null one, and the API's validation problem documents name the fields a member has
  * to fix. Parsing and re-emitting either would give the BFF an opinion it is not
  * allowed to have (invariant 7) and a second place for the wording to drift.
+ *
+ * `sourceAddress` is forwarded because two of the routes this carries — the password
+ * change and the account deletion — verify a password, and feature 002's finding F6 was
+ * that neither was throttled. A throttle keyed on an address the API never receives is the
+ * same defect twice.
  */
 export async function forwardJson(
   baseUrl: string,
@@ -28,13 +35,18 @@ export async function forwardJson(
   path: string,
   token: string,
   body: string,
+  sourceAddress: string | null,
 ): Promise<Forwarded> {
   let response: Response;
 
   try {
     response = await fetch(`${baseUrl}${path}`, {
       method,
-      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+        ...(sourceAddress ? { [FORWARDED_FOR]: sourceAddress } : {}),
+      },
       body,
       signal: AbortSignal.timeout(TIMEOUT_MS),
       cache: "no-store",

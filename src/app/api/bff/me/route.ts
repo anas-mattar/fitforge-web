@@ -3,6 +3,7 @@ import { apiBaseUrl } from "@/lib/api-client";
 import { FORBIDDEN_ORIGIN, SERVICE_UNAVAILABLE, failure, originIsAllowed } from "@/lib/bff";
 import { forwardJson } from "@/lib/me-transport";
 import { clearSessionToken, readSessionToken } from "@/lib/session";
+import { callerAddress } from "@/lib/source-address";
 
 /**
  * GET /api/bff/me — contracts/member.md §6.
@@ -51,6 +52,9 @@ export async function DELETE(request: Request): Promise<Response> {
     "/api/v1/me",
     token,
     await request.text(),
+    // Deletion re-authenticates, so it is throttled (finding F6) — and of everything in
+    // this feature it is the action with no undo after the retention window.
+    callerAddress(request),
   );
 
   if (!result.ok) {

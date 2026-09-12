@@ -1,5 +1,6 @@
 import { signIn } from "@/lib/api-auth";
 import { FORBIDDEN_ORIGIN, SERVICE_UNAVAILABLE, failure, originIsAllowed } from "@/lib/bff";
+import { callerAddress } from "@/lib/source-address";
 import { writeSessionToken } from "@/lib/session";
 
 /**
@@ -23,6 +24,9 @@ export async function POST(request: Request): Promise<Response> {
   const result = await signIn(
     typeof body.email === "string" ? body.email : "",
     typeof body.password === "string" ? body.password : "",
+    // contracts/auth.md §6. The BFF is the only party that can see who the caller is; the
+    // API is the only party allowed to decide what that means (invariant 7).
+    callerAddress(request),
   );
 
   if (!result.ok) {

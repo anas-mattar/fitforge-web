@@ -25,6 +25,11 @@ export async function PATCH(request: Request): Promise<Response> {
     "/api/v1/me/preferences",
     token,
     await request.text(),
+    // Null, and required rather than defaulted so this line had to be written. Changing a
+    // preference verifies no password, so the API does not throttle it and an address
+    // would be a value it ignores. Finding F6 was two routes nobody decided about; a
+    // parameter with a default would have let a third join them silently.
+    null,
   );
 
   if (!result.ok) {

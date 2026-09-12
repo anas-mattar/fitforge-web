@@ -22,7 +22,11 @@ describe("the server-side auth client", () => {
   async function signInWith(fetchImpl: typeof fetch) {
     vi.stubGlobal("fetch", fetchImpl);
     const { postSignIn } = await import("../auth-transport");
-    return postSignIn(BASE, "member@example.com", "correct horse battery staple");
+
+    // The caller's address, which phase 13 made a required argument (finding F1). These
+    // tests are about the failure mapping and not about the header, which
+    // `source-address.test.ts` covers.
+    return postSignIn(BASE, "member@example.com", "correct horse battery staple", "203.0.113.7");
   }
 
   it("returns the token when the API accepts the credentials", async () => {

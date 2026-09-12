@@ -2,6 +2,7 @@ import { apiBaseUrl } from "@/lib/api-client";
 import { FORBIDDEN_ORIGIN, SERVICE_UNAVAILABLE, failure, originIsAllowed } from "@/lib/bff";
 import { readSessionToken } from "@/lib/session";
 import { forwardJson } from "@/lib/me-transport";
+import { callerAddress } from "@/lib/source-address";
 
 /** POST /api/bff/me/password — contracts/member.md §3 and §6. */
 export async function POST(request: Request): Promise<Response> {
@@ -21,6 +22,9 @@ export async function POST(request: Request): Promise<Response> {
     "/api/v1/me/password",
     token,
     await request.text(),
+    // This route verifies a password, so the API throttles it (finding F6) and needs to
+    // know whose attempt it is.
+    callerAddress(request),
   );
 
   if (!result.ok) {

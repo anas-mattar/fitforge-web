@@ -11,6 +11,8 @@
  * the module marked server-only.
  */
 
+import { FORWARDED_FOR } from "./source-address";
+
 /** What the API returns on register and sign-in. */
 export type Credentialed = {
   readonly token: string;
@@ -36,6 +38,7 @@ async function post<T>(
   path: string,
   body: unknown,
   token?: string,
+  sourceAddress?: string | null,
 ): Promise<ApiResult<T>> {
   let response: Response;
 
@@ -45,6 +48,11 @@ async function post<T>(
       headers: {
         "content-type": "application/json",
         ...(token ? { authorization: `Bearer ${token}` } : {}),
+        // contracts/auth.md §6: the BFF supplies the caller's address and the API decides
+        // what to do about it (invariant 7). Omitted rather than sent empty when unknown —
+        // an empty value is an address as far as a hash is concerned, and every caller
+        // sharing one is finding F1.
+        ...(sourceAddress ? { [FORWARDED_FOR]: sourceAddress } : {}),
       },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -84,17 +92,45 @@ async function post<T>(
   return { ok: true, value: payload as T };
 }
 
-/** contracts/auth.md §2. */
-export function postRegister(baseUrl: string, email: string, password: string, displayName: string) {
-  return post<Credentialed>(baseUrl, "/api/v1/auth/register", { email, password, displayName });
+/** contracts/auth.md §2. Throttled by §6, so the caller's address goes with it. */
+export function postRegister(
+  baseUrl: string,
+  email: string,
+  password: string,
+  displayName: string,
+  sourceAddress: string | null,
+) {
+  return post<Credentialed>(
+    baseUrl,
+    "/api/v1/auth/register",
+    { email, password, displayName },
+    undefined,
+    sourceAddress,
+  );
 }
 
 /** contracts/auth.md §3. */
-export function postSignIn(baseUrl: string, email: string, password: string) {
-  return post<Credentialed>(baseUrl, "/api/v1/auth/sign-in", { email, password });
+export function postSignIn(
+  baseUrl: string,
+  email: string,
+  password: string,
+  sourceAddress: string | null,
+) {
+  return post<Credentialed>(
+    baseUrl,
+    "/api/v1/auth/sign-in",
+    { email, password },
+    undefined,
+    sourceAddress,
+  );
 }
 
-/** contracts/auth.md §4. */
+/**
+ * contracts/auth.md §4.
+ *
+ * No address: sign-out verifies no password and is not throttled, so sending one would
+ * hand the API a value it has no use for.
+ */
 export function postSignOut(baseUrl: string, token: string) {
   return post<void>(baseUrl, "/api/v1/auth/sign-out", {}, token);
 }

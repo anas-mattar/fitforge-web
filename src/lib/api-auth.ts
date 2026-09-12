@@ -15,11 +15,15 @@ import { getMe as transportGetMe, postRegister, postSignIn, postSignOut } from "
 
 export type { ApiResult, Credentialed, Me } from "./auth-transport";
 
-export const register = (email: string, password: string, displayName: string) =>
-  postRegister(apiBaseUrl(), email, password, displayName);
+export const register = (
+  email: string,
+  password: string,
+  displayName: string,
+  sourceAddress: string | null,
+) => postRegister(apiBaseUrl(), email, password, displayName, sourceAddress);
 
-export const signIn = (email: string, password: string) =>
-  postSignIn(apiBaseUrl(), email, password);
+export const signIn = (email: string, password: string, sourceAddress: string | null) =>
+  postSignIn(apiBaseUrl(), email, password, sourceAddress);
 
 export const signOut = (token: string) => postSignOut(apiBaseUrl(), token);
 
